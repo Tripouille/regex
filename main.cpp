@@ -2,6 +2,6 @@
 
 int main(void)
 {
-    Regex r(".*A");
+    Regex r(".*[ab]");
     return (0);
 }
