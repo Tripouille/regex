@@ -3,20 +3,21 @@
 Regex::Regex(string const & regex) throw (std::invalid_argument) {
 	size_t i = 0;
 	while (regex[i])
-	{
-		struct pattern parent("ROOT");
-		_extractPattern(regex, i, parent);
-		_roots.push_back(parent);
-	}
+		_extractPattern(regex, i, _root);
 }
 
 Regex::~Regex() {
-    showPattern(_roots);
+    showPattern(_root.sequence, 1);
 }
 
-void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument) {
+void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & parent, bool isAlternative) throw (std::invalid_argument) {
 	struct pattern child;
 
+	if (regex[i] == '|')
+	{
+		++i;
+		return (_extractPattern(regex, i, parent, true));
+	}
 	if (regex[i] == '.')
 	{
 		child.value = ".";
@@ -33,29 +34,19 @@ void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & p
 	}
 	else if (regex[i] == '(')
 	{
-		//std::cout << "parenthesis detected " << i << std::endl;
-		_extractParenthesis(regex, i, parent);
-		return ;
+		child.value = "Parenthesis";
+		size_t parenthesisEnd = _getParenthesisEnd(regex, i);
+		++i;
+		while (i < parenthesisEnd)
+			_extractPattern(regex, i , child);
+		i = parenthesisEnd + 1;
 	}
 	_setPatternMinMax(regex, i, child);
-	parent.sequence.push_back(child);
-}
-
-void Regex::_extractParenthesis(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument) {
-	size_t parenthesisEnd = _getParenthesisEnd(regex, i);
-
-	struct pattern child("Parenthesis");
-	//std::cout << "parenthesisStart = " << i << " parenthesisEnd = " << parenthesisEnd << std::endl;
-	++i;
-	while (i < parenthesisEnd)
-	{
-		//std::cout << "extract parenthesis i debut = " << regex[i] << std::endl;
-		_extractPattern(regex, i , child);
-		//std::cout << "extract parenthesis i fin = " << regex[i] << std::endl;
-	}
-	i = parenthesisEnd + 1;
-	_setPatternMinMax(regex, i, child);
-	parent.sequence.push_back(child);
+	if (isAlternative)
+		parent.sequence.back().alternative.push_back(child);
+	else
+		parent.sequence.push_back(child);
+	isAlternative = false;
 }
 
 size_t Regex::_getParenthesisEnd(string const & regex, size_t & i) throw (std::invalid_argument) {
@@ -89,20 +80,20 @@ void Regex::_setPatternMinMax(string const & regex, size_t & i, struct pattern &
 	++i;
 }
 
-void Regex::showPattern(vector<struct pattern> & p) {
+void Regex::showPattern(vector<struct pattern> & p, int x) {
 	for (size_t i = 0; i < p.size(); ++i)
 	{
-		std::cout << "actual sequence i = " << i << std::endl;
+		std::cout << "prof = " << x << " actual sequence i = " << i << std::endl;
 		std::cout << "pattern value = " << p[i].value << " min = " << p[i].min << " max = " << p[i].max << std::endl;
 		if (p[i].sequence.size())
 		{
 			std::cout << "rest of sequence:" << std::endl;
-			showPattern(p[i].sequence);
+			showPattern(p[i].sequence, x + 1);
 		}
 		if (p[i].alternative.size())
 		{
 			std::cout << "alternative sequence:" << std::endl;
-			showPattern(p[i].alternative);
+			showPattern(p[i].alternative, x + 1);
 		}
 	}
 }
