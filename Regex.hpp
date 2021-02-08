@@ -32,6 +32,7 @@ class Regex {
         void _extractParenthesis(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument);;
         void _setPatternMinMax(string const & regex, size_t & i, struct pattern & p);
         size_t _getParenthesisEnd(string const & regex, size_t & i) throw (std::invalid_argument);
+        bool isEscaped(string const & regex, size_t i) const;
 
         vector<struct pattern> _patterns;
 };

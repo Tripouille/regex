@@ -61,9 +61,9 @@ size_t Regex::_getParenthesisEnd(string const & regex, size_t & i) throw (std::i
 
 	do
 	{
-		if (regex[end] == '(')
+		if (regex[end] == '(' && !isEscaped(regex, end))
 			++parenthesisCount;
-		else if (regex[end] == ')')
+		else if (regex[end] == ')' && !isEscaped(regex, end))
 			--parenthesisCount;
 	} while (parenthesisCount && regex[++end]);
 	if (parenthesisCount)
@@ -102,4 +102,11 @@ void Regex::showPattern(vector<struct pattern> & p) {
 			showPattern(p[i].alternative);
 		}
 	}
+}
+
+bool Regex::isEscaped(string const & regex, size_t i) const {
+	size_t count = 0;
+	while (--i >= 0 && regex[i] == '\\')
+		++count;
+	return (count % 2);
 }
