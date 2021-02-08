@@ -12,23 +12,28 @@ using std::vector;
 class Regex {
 
     struct pattern {
-        pattern(string const & v, size_t mi, size_t ma) : value(v), min(mi), max(ma) {}
+        pattern(string const & v = "", size_t mi = 1, size_t ma = 1) : value(v), min(mi), max(ma) {}
         string value;
-        ssize_t min = 1, max = 1;
+        ssize_t min, max;
+        vector<struct pattern> sequence;
+        vector<struct pattern> alternative;
     };
 
     public:
-        Regex(string const * regex) throw (std::invalid_argument);
+        Regex(string const & regex) throw (std::invalid_argument);
         ~Regex();
+        void showPattern(vector<struct pattern> & p);
 
     private:
         Regex();
         Regex(Regex const & o);
         Regex & operator=(Regex const & o);
-        bool _extractPattern(char const *& regex,
-					vector<struct pattern> & v);
-        
-        vector< vector<struct pattern> > _patterns;
+        void _extractPattern(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument);;
+        void _extractParenthesis(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument);;
+        void _setPatternMinMax(string const & regex, size_t & i, struct pattern & p);
+        size_t _getParenthesisEnd(string const & regex, size_t & i) throw (std::invalid_argument);
+
+        vector<struct pattern> _patterns;
 };
 
 #endif
