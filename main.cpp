@@ -2,6 +2,6 @@
 
 int main(void)
 {
-    Regex r("(.*([ab][cd])?)?");
+    Regex r("(.*([ab][cd])?)+.*");
     return (0);
 }

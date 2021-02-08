@@ -6,12 +6,12 @@ Regex::Regex(string const & regex) throw (std::invalid_argument) {
 	{
 		struct pattern parent("ROOT");
 		_extractPattern(regex, i, parent);
-		_patterns.push_back(parent);
+		_roots.push_back(parent);
 	}
 }
 
 Regex::~Regex() {
-    showPattern(_patterns);
+    showPattern(_roots);
 }
 
 void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument) {
@@ -25,7 +25,7 @@ void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & p
 	else if (regex[i] == '[')
 	{
 		size_t closingBracketPos = regex.find(']', i + 1);
-		std::cout << "exrtact bracket start = " << i << " end = " << closingBracketPos << std::endl;
+		//std::cout << "exrtact bracket start = " << i << " end = " << closingBracketPos << std::endl;
 		if (closingBracketPos == string::npos)
 			throw std::invalid_argument(regex);
 		child.value = string(regex, i, closingBracketPos - i + 1);
@@ -33,9 +33,8 @@ void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & p
 	}
 	else if (regex[i] == '(')
 	{
-		std::cout << "parenthesis detected " << i << std::endl;
+		//std::cout << "parenthesis detected " << i << std::endl;
 		_extractParenthesis(regex, i, parent);
-		_setPatternMinMax(regex, i, parent);
 		return ;
 	}
 	_setPatternMinMax(regex, i, child);
@@ -44,15 +43,19 @@ void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & p
 
 void Regex::_extractParenthesis(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument) {
 	size_t parenthesisEnd = _getParenthesisEnd(regex, i);
-	std::cout << "parenthesisStart = " << i << " parenthesisEnd = " << parenthesisEnd << std::endl;
+
+	struct pattern child("Parenthesis");
+	//std::cout << "parenthesisStart = " << i << " parenthesisEnd = " << parenthesisEnd << std::endl;
 	++i;
 	while (i < parenthesisEnd)
 	{
-		std::cout << "extract parenthesis i debut = " << regex[i] << std::endl;
-		_extractPattern(regex, i , parent);
-		std::cout << "extract parenthesis i fin = " << regex[i] << std::endl;
+		//std::cout << "extract parenthesis i debut = " << regex[i] << std::endl;
+		_extractPattern(regex, i , child);
+		//std::cout << "extract parenthesis i fin = " << regex[i] << std::endl;
 	}
 	i = parenthesisEnd + 1;
+	_setPatternMinMax(regex, i, child);
+	parent.sequence.push_back(child);
 }
 
 size_t Regex::_getParenthesisEnd(string const & regex, size_t & i) throw (std::invalid_argument) {

@@ -34,7 +34,7 @@ class Regex {
         size_t _getParenthesisEnd(string const & regex, size_t & i) throw (std::invalid_argument);
         bool isEscaped(string const & regex, size_t i) const;
 
-        vector<struct pattern> _patterns;
+        vector<struct pattern> _roots;
 };
 
 #endif
