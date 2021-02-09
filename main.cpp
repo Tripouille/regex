@@ -2,6 +2,13 @@
 
 int main(void)
 {
-    Regex r(".*a?bcd");
+    Regex r("a|b()");
     return (0);
 }
+
+/*
+
+
+
+
+*/

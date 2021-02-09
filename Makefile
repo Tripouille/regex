@@ -1,4 +1,4 @@
-CC = clang++ -Wall -Wextra -Werror -fsanitize=address
+CC = clang++ -Wall -Wextra -Werror -fsanitize=address -std=c++98
 SRCS = Regex.cpp main.cpp
 OBJS = $(SRCS:.cpp=.o)
 all: $(OBJS)
