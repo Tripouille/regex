@@ -10,23 +10,21 @@ Regex::~Regex() {
     showPattern(_root.sequence, 1);
 }
 
-void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & parent, bool isAlternative) throw (std::invalid_argument) {
+void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument) {
 	struct pattern child;
 
 	if (regex[i] == '|')
 	{
-		++i;
-		return (_extractPattern(regex, i, parent, true));
+		parent.isAlternative = true; ++i;
+		return ;
 	}
-	if (regex[i] == '.')
+	else if (regex[i] == '.')
 	{
-		child.value = ".";
-		++i;
+		child.value = "."; ++i;
 	}
 	else if (regex[i] == '[')
 	{
 		size_t closingBracketPos = regex.find(']', i + 1);
-		//std::cout << "exrtact bracket start = " << i << " end = " << closingBracketPos << std::endl;
 		if (closingBracketPos == string::npos)
 			throw std::invalid_argument(regex);
 		child.value = string(regex, i, closingBracketPos - i + 1);
@@ -41,12 +39,16 @@ void Regex::_extractPattern(string const & regex, size_t & i, struct pattern & p
 			_extractPattern(regex, i , child);
 		i = parenthesisEnd + 1;
 	}
+	else
+	{
+		child.value = regex[i]; ++i;
+	}
+	/* Set min and max and add the pattern */
 	_setPatternMinMax(regex, i, child);
-	if (isAlternative)
+	if (parent.isAlternative)
 		parent.sequence.back().alternative.push_back(child);
 	else
 		parent.sequence.push_back(child);
-	isAlternative = false;
 }
 
 size_t Regex::_getParenthesisEnd(string const & regex, size_t & i) throw (std::invalid_argument) {

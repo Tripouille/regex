@@ -2,6 +2,6 @@
 
 int main(void)
 {
-    Regex r("[1]|[2]|[2]|([3])[2]");
+    Regex r(".*a?bcd");
     return (0);
 }

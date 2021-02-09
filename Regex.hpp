@@ -12,11 +12,12 @@ using std::vector;
 class Regex {
 
     struct pattern {
-        pattern(string const & v = "ROOT", size_t mi = 1, size_t ma = 1) : value(v), min(mi), max(ma) {}
+        pattern(string const & v = "ROOT", size_t mi = 1, size_t ma = 1) : value(v), min(mi), max(ma), isAlternative(false) {}
         string value;
         ssize_t min, max;
         vector<struct pattern> sequence;
         vector<struct pattern> alternative;
+        bool isAlternative;
     };
 
     public:
@@ -28,7 +29,7 @@ class Regex {
         Regex();
         Regex(Regex const & o);
         Regex & operator=(Regex const & o);
-        void _extractPattern(string const & regex, size_t & i, struct pattern & parent, bool isAlternative = false) throw (std::invalid_argument);
+        void _extractPattern(string const & regex, size_t & i, struct pattern & parent) throw (std::invalid_argument);
         void _setPatternMinMax(string const & regex, size_t & i, struct pattern & p);
         size_t _getParenthesisEnd(string const & regex, size_t & i) throw (std::invalid_argument);
         bool isEscaped(string const & regex, size_t i) const;
