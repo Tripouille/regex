@@ -29,7 +29,7 @@ bool Regex::match(string const & str) const {
 	{
 		testedPos = pos;
 		std::cout << std::endl << ">>>>>>>>>> TestedPos = " << testedPos << " <<<<<<<<<<<<<<" << std::endl;
-		if (_matchSequence(str, testedPos, _root.sequence))
+		if (_matchSequence(str, testedPos, _root.sequence, 0))
 			return (true);
 	}
 	return (false);
@@ -37,34 +37,38 @@ bool Regex::match(string const & str) const {
 
 /* Private */
 
-bool Regex::_matchSequence(string const & str, size_t & pos, vector<struct pattern> const & sequence) const {
-	size_t sequenceSize = sequence.size();
+bool Regex::_matchSequence(string const & str, size_t pos, vector<struct pattern> const & sequence, size_t sequencePos) const {
 	size_t alternativeSize;
-	size_t iSequence = 0;
 	size_t iAlternative = 0;
-
-	for (; iSequence < sequenceSize; ++iSequence)
+	
+	std::cout << "Actual sequencePos = " << sequencePos << std::endl;
+	if (sequencePos == sequence.size())
+		return (true);
+	for (size_t repeat = 0; repeat < sequence[sequencePos].max; ++repeat)
 	{
-		std::cout << "Actual iSequence = " << iSequence << std::endl;
-		if (!_matchPattern(str, pos, sequence[iSequence]) && sequence[iSequence].min > 0)
+		if (_matchPattern(str, pos, sequence[sequencePos]) || sequence[sequencePos].min == 0)
 		{
-			alternativeSize = sequence[iSequence].alternative.size();
-			std::cout << sequence[iSequence].value << " miss match / alternative = " << alternativeSize << std::endl;
-			if (alternativeSize == 0)
-				return (false);
-			for (; iAlternative < alternativeSize && !_matchPattern(str, pos, sequence[iSequence].alternative[iAlternative]); ++iAlternative);
-			if (iAlternative == alternativeSize)
-				return (false);
+			std::cout << sequence[sequencePos].value << " match ! repeat = " << repeat << std::endl;
+			if (_matchSequence(str, pos, sequence, sequencePos + 1) == true)
+				return (true);
 		}
 		else
-			std::cout << sequence[iSequence].value << " match !" << std::endl;
+		{
+			alternativeSize = sequence[sequencePos].alternative.size();
+			std::cout << sequence[sequencePos].value << " miss match / alternative = " << alternativeSize << std::endl;
+			for (; iAlternative < alternativeSize && !_matchSequence(str, pos, sequence[sequencePos].alternative, 0); ++iAlternative);
+			if (iAlternative == alternativeSize)
+				return (false);
+			else if (_matchSequence(str, pos, sequence, sequencePos + 1) == true)
+				return (true);
+		}
 	}
-	return (iSequence == sequenceSize);
+	return (true);
 }
 
 bool Regex::_matchPattern(string const & str, size_t & pos, struct pattern const & pattern) const {
 	if (pattern.sequence.size() != 0)
-		return (_matchSequence(str, pos, pattern.sequence));
+		return (_matchSequence(str, pos, pattern.sequence, 0));
 	if (pattern.isEscaped || string("(|[").find(pattern.value[0]) == string::npos)
 	{
 		if (pattern.value[0] == str[pos])

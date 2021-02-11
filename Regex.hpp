@@ -14,7 +14,7 @@ class Regex {
     struct pattern {
         pattern(string const & v = "ROOT", size_t mi = 1, size_t ma = 1) : value(v), min(mi), max(ma), isAlternative(false), isEscaped(false) {}
         string value;
-        ssize_t min, max;
+        size_t min, max;
         vector<struct pattern> sequence;
         vector<struct pattern> alternative;
         bool isAlternative;
@@ -48,7 +48,7 @@ class Regex {
         void _checkPipeValidity() const throw (std::invalid_argument);
         void _checkParenthesisValidity() const throw (std::invalid_argument);
 
-        bool _matchSequence(string const & str, size_t & pos, vector<struct pattern> const & sequence) const;
+        bool _matchSequence(string const & str, size_t pos, vector<struct pattern> const & sequence, size_t sequencePos) const;
         bool _matchPattern(string const & str, size_t & pos, struct pattern const & pattern) const;
         bool _matchParenthesis(string const & str, size_t & pos, struct pattern const & pattern) const;
         //debug
