@@ -2,8 +2,9 @@
 
 int main(void)
 {
-    Regex r("ed[q]|e");
-    string str("e");
+    //handleParenthesis appelle handleSequence qui a la fin appelle handleCharacter sur le ')'
+    Regex r("(ab|ce|cd)"); 
+    string str("acd");
     std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
     return (0);
 }
@@ -11,6 +12,7 @@ int main(void)
 /*
 
 
+a faire in is parenthesis pour la fin de la sequence
 
 
 */

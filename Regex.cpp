@@ -11,7 +11,7 @@ Regex::Regex(string const & regex) throw (std::invalid_argument) : _source(regex
 }
 
 Regex::~Regex() {
-    //showPattern(_root.sequence, 1);
+    showPattern(_root.sequence, 1);
 }
 
 /* Public */
@@ -100,7 +100,7 @@ void Regex::_extractPattern(size_t & i, struct pattern & parent) throw (std::inv
 	else
 		_handleSequence(i, child, parent);
 
-	_setPatternMinMax(i, child);
+	//_setPatternMinMax(i, child);
 	_insertPattern(parent, child);
 }
 
@@ -110,6 +110,7 @@ void Regex::_handleParenthesis(size_t & i, struct pattern & parenthesis) {
 	++i;
 	while (i < parenthesisEnd)
 		_extractPattern(i , parenthesis);
+	_setPatternMinMax(i, parenthesis);
 	++i;
 }
 
@@ -129,6 +130,7 @@ void Regex::_handleBracket(size_t & i, struct pattern & child) {
 	else if (closingBracketPos == i + 1)
 		throw std::invalid_argument("Regex bracket can't be empty");
 	child.value = string(_source, i, closingBracketPos - i + 1);
+	_setPatternMinMax(i, child);
 	i = closingBracketPos + 1;
 }
 
@@ -149,7 +151,7 @@ void Regex::_handleSequence(size_t & i, struct pattern & child, struct pattern &
 }
 
 void Regex::_handleCharacter(size_t & i, struct pattern & child) {
-	struct pattern characters("character");
+	struct pattern characters("Characters");
 
 	size_t characterEnd = _getCharacterEnd(i);
 	while (i < characterEnd)
@@ -159,6 +161,7 @@ void Regex::_handleCharacter(size_t & i, struct pattern & child) {
 		actualChar.value = _source[i];
 		actualChar.isEscaped = isEscaped(i);
 		++i;
+		_setPatternMinMax(i, actualChar);
 		characters.sequence.push_back(actualChar);
 	}
 	child.sequence.push_back(characters);
@@ -203,7 +206,7 @@ size_t Regex::_getPipeEnd(size_t i) {
 
 size_t Regex::_getSequenceEnd(size_t i) {
 
-	while(_source[++i] && !_isRealPipe(i));
+	while(_source[++i] && !_isRealPipe(i) && !(_source[i] == ')' && !isEscaped(i)));
 	return (i);
 }
 
