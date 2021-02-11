@@ -22,13 +22,13 @@ string Regex::getSource() const {
 
 bool Regex::match(string const & str) const {
 	size_t pos = 0;
+	size_t testedPos = 0;
 	size_t limit = str.size();
-	size_t testedPos;
 	
 	for (; pos < limit; ++pos)
 	{
 		testedPos = pos;
-		std::cout << std::endl << ">>>>>>>>>> TestedPos = " << testedPos << " <<<<<<<<<<<<<<" << std::endl;
+		std::cout << std::endl << ">>>>>>>>>> TestedPos = " << pos << " <<<<<<<<<<<<<<" << std::endl;
 		if (_matchSequence(str, testedPos, _root.sequence, 0))
 			return (true);
 	}
@@ -37,54 +37,58 @@ bool Regex::match(string const & str) const {
 
 /* Private */
 
-bool Regex::_matchSequence(string const & str, size_t pos, vector<struct pattern> const & sequence, size_t sequencePos) const {
+bool Regex::_matchSequence(string const & str, size_t & strPos, vector<struct pattern> const & sequence, size_t sequencePos) const {
 	size_t alternativeSize;
-	size_t iAlternative = 0;
+	size_t iAlternative;
+	size_t strPosSave = strPos;
 	
-	std::cout << "Actual sequencePos = " << sequencePos << std::endl;
+	std::cout << "Actual sequencePos = " << sequencePos << " Actual strPos = " << strPos <<  std::endl;
 	if (sequencePos == sequence.size())
 		return (true);
 	for (size_t repeat = 0; repeat < sequence[sequencePos].max; ++repeat)
 	{
-		if (_matchPattern(str, pos, sequence[sequencePos]) || sequence[sequencePos].min == 0)
+		if (_matchPattern(str, strPos, sequence[sequencePos]))
 		{
 			std::cout << sequence[sequencePos].value << " match ! repeat = " << repeat << std::endl;
-			if (_matchSequence(str, pos, sequence, sequencePos + 1) == true)
+			if (_matchSequence(str, strPos, sequence, sequencePos + 1) == true)
 				return (true);
 		}
 		else
 		{
+			strPos = strPosSave;
+			iAlternative = 0;
 			alternativeSize = sequence[sequencePos].alternative.size();
 			std::cout << sequence[sequencePos].value << " miss match / alternative = " << alternativeSize << std::endl;
-			for (; iAlternative < alternativeSize && !_matchSequence(str, pos, sequence[sequencePos].alternative, 0); ++iAlternative);
-			if (iAlternative == alternativeSize)
-				return (false);
-			else if (_matchSequence(str, pos, sequence, sequencePos + 1) == true)
+			for (; iAlternative < alternativeSize && !_matchPattern(str, strPos, sequence[sequencePos].alternative[iAlternative]); ++iAlternative);
+			//std::cout << "iAlternative = " << iAlternative << "  alternativeSize = " << alternativeSize << std::endl;
+			if ((iAlternative < alternativeSize || sequence[sequencePos].min == 0)
+			&& _matchSequence(str, strPos, sequence, sequencePos + 1) == true)
 				return (true);
+			else
+				return (false);
 		}
 	}
-	return (true);
+	return (false);
 }
 
-bool Regex::_matchPattern(string const & str, size_t & pos, struct pattern const & pattern) const {
+bool Regex::_matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const {
+	//std::cout << pattern.value << " in matchPattern / sequence size = " << pattern.sequence.size() << std::endl;
 	if (pattern.sequence.size() != 0)
-		return (_matchSequence(str, pos, pattern.sequence, 0));
+		return (_matchSequence(str, strPos, pattern.sequence, 0));
 	if (pattern.isEscaped || string("(|[").find(pattern.value[0]) == string::npos)
 	{
-		if (pattern.value[0] == str[pos])
+		if (pattern.value[0] == str[strPos])
 		{
-			++pos;
+			++strPos;
 			return (true);
 		}
 		return (false);
 	}
-	else if (pattern.value[0] == '(')
-		return (_matchParenthesis(str, pos, pattern));
-	return (str.size() == pos && pattern.isAlternative);
+	return (false);
 }
 
-bool Regex::_matchParenthesis(string const & str, size_t & pos, struct pattern const & pattern) const {
-	return (str.size() == pos && pattern.isAlternative);
+bool Regex::_matchParenthesis(string const & str, size_t & strPos, struct pattern const & pattern) const {
+	return (str.size() == strPos && pattern.isAlternative);
 }
 
 
@@ -100,7 +104,7 @@ void Regex::_extractPattern(size_t & i, struct pattern & parent) throw (std::inv
 	else if (_source[i] == '[' && !isEscaped(i))
 		_handleBracket(i, child);
 	else
-		_handleCharacter(i, child);
+		_handleSequence(i, child);
 	_setPatternMinMax(i, child);
 	_insertPattern(parent, child);
 }
@@ -133,10 +137,19 @@ void Regex::_handleBracket(size_t & i, struct pattern & child) {
 	i = closingBracketPos + 1;
 }
 
+void Regex::_handleSequence(size_t & i, struct pattern & child) {
+	child.value = "Sequence";
+	size_t sequenceEnd = _getSequenceEnd(i);
+	while (i < sequenceEnd)
+		_handleCharacter(i , child);
+}
+
 void Regex::_handleCharacter(size_t & i, struct pattern & child) {
-	child.value = _source[i];
-	child.isEscaped = isEscaped(i);
+	struct pattern character;
+	character.value = _source[i];
+	character.isEscaped = isEscaped(i);
 	++i;
+	child.sequence.push_back(character);
 }
 
 void Regex::_handleEscapeCharacter(size_t & i) const {
@@ -150,7 +163,7 @@ void Regex::_insertPattern(struct pattern & parent, struct pattern & child) {
 		parent.sequence.push_back(child);
 }
 
-size_t Regex::_getParenthesisEnd(size_t i) throw (std::invalid_argument) {
+size_t Regex::_getParenthesisEnd(size_t i) {
 	size_t end = i;
 	ssize_t parenthesisCount = 0;
 
@@ -164,7 +177,7 @@ size_t Regex::_getParenthesisEnd(size_t i) throw (std::invalid_argument) {
 	return (end);
 }
 
-size_t Regex::_getPipeEnd(size_t i) throw (std::invalid_argument) {
+size_t Regex::_getPipeEnd(size_t i) {
 
 	while(_source[++i])
 	{
@@ -173,6 +186,12 @@ size_t Regex::_getPipeEnd(size_t i) throw (std::invalid_argument) {
 		else if (!isEscaped(i) && (_source[i] == '|' || _source[i] == ')'))
 			return (i);
 	}
+	return (i);
+}
+
+size_t Regex::_getSequenceEnd(size_t i) {
+
+	while(_source[++i] && !_isRealParenthesis(i) && !_isRealPipe(i) && !_isRealBracket(i));
 	return (i);
 }
 
@@ -220,7 +239,7 @@ void Regex::showPattern(vector<struct pattern> & p, int x, bool isAlternative) {
 }
 
 void Regex::_checkPipeValidity() const throw (std::invalid_argument) {
-	if (_source.front() == '|' || _source.back() == '|')
+	if (_source[0] == '|' || _source[_source.size() - 1] == '|')
 		throw std::invalid_argument("Regex pipe error");
 	size_t size = _source.size();
 	for (size_t i = 1; i < size; ++i)
@@ -244,4 +263,16 @@ void Regex::_checkParenthesisValidity() const throw (std::invalid_argument) {
 	}
 	if (parenthesisCount != 0)
 		throw std::invalid_argument("Regex parenthesis error");
+}
+
+bool Regex::_isRealParenthesis(size_t i) const {
+	return (_source[i] == '(' && !isEscaped(i));
+}
+
+bool Regex::_isRealPipe(size_t i) const {
+	return (_source[i] == '|' && !isEscaped(i));
+}
+
+bool Regex::_isRealBracket(size_t i) const {
+	return (_source[i] == '[' && !isEscaped(i));
 }
