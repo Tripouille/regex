@@ -97,14 +97,9 @@ void Regex::_extractPattern(size_t & i, struct pattern & parent) throw (std::inv
 
 	if (_source[i] == '\\' && !isEscaped(i))
 		return (_handleEscapeCharacter(i));
-	else if (_source[i] == '(' && !isEscaped(i))
-		_handleParenthesis(i, child);
-	else if (_source[i] == '|' && !isEscaped(i))
-		_handlePipe(i, child, parent);
-	else if (_source[i] == '[' && !isEscaped(i))
-		_handleBracket(i, child);
 	else
-		_handleSequence(i, child);
+		_handleSequence(i, child, parent);
+
 	_setPatternMinMax(i, child);
 	_insertPattern(parent, child);
 }
@@ -137,19 +132,36 @@ void Regex::_handleBracket(size_t & i, struct pattern & child) {
 	i = closingBracketPos + 1;
 }
 
-void Regex::_handleSequence(size_t & i, struct pattern & child) {
+void Regex::_handleSequence(size_t & i, struct pattern & child, struct pattern & parent) {
 	child.value = "Sequence";
 	size_t sequenceEnd = _getSequenceEnd(i);
 	while (i < sequenceEnd)
-		_handleCharacter(i , child);
+	{
+		if (_source[i] == '(' && !isEscaped(i))
+			_handleParenthesis(i, child);
+		else if (_source[i] == '|' && !isEscaped(i))
+			_handlePipe(i, child, parent);
+		else if (_source[i] == '[' && !isEscaped(i))
+			_handleBracket(i, child);
+		else
+			_handleCharacter(i , child);
+	}
 }
 
 void Regex::_handleCharacter(size_t & i, struct pattern & child) {
-	struct pattern character;
-	character.value = _source[i];
-	character.isEscaped = isEscaped(i);
-	++i;
-	child.sequence.push_back(character);
+	struct pattern characters("character");
+
+	size_t characterEnd = _getCharacterEnd(i);
+	while (i < characterEnd)
+	{
+		struct pattern actualChar;
+
+		actualChar.value = _source[i];
+		actualChar.isEscaped = isEscaped(i);
+		++i;
+		characters.sequence.push_back(actualChar);
+	}
+	child.sequence.push_back(characters);
 }
 
 void Regex::_handleEscapeCharacter(size_t & i) const {
@@ -191,7 +203,13 @@ size_t Regex::_getPipeEnd(size_t i) {
 
 size_t Regex::_getSequenceEnd(size_t i) {
 
-	while(_source[++i] && !_isRealParenthesis(i) && !_isRealPipe(i) && !_isRealBracket(i));
+	while(_source[++i] && !_isRealPipe(i));
+	return (i);
+}
+
+size_t Regex::_getCharacterEnd(size_t i) {
+
+	while(_source[++i] && !_isRealPipe(i) && !_isRealParenthesis(i) && !_isRealBracket(i));
 	return (i);
 }
 

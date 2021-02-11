@@ -37,7 +37,7 @@ class Regex {
         void _handleParenthesis(size_t & i, struct pattern & parenthesis);
         void _handlePipe(size_t & i, struct pattern & pipe, struct pattern & parent);
         void _handleBracket(size_t & i, struct pattern & child);
-        void _handleSequence(size_t & i, struct pattern & child);
+        void _handleSequence(size_t & i, struct pattern & child, struct pattern & parent);
         void _handleCharacter(size_t & i, struct pattern & child);
         void _handleEscapeCharacter(size_t & i) const;
         void _setPatternMinMax(size_t & i, struct pattern & p);
@@ -46,6 +46,7 @@ class Regex {
         bool isEscaped(size_t i) const;
         size_t _getParenthesisEnd(size_t i);
         size_t _getPipeEnd(size_t i);
+        size_t _getCharacterEnd(size_t i);
         size_t _getSequenceEnd(size_t i);
 
         void _checkPipeValidity() const throw (std::invalid_argument);
