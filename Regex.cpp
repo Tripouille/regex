@@ -43,7 +43,9 @@ bool Regex::_matchPattern(string const & str, size_t & pos, struct pattern const
 void Regex::_extractPattern(size_t & i, struct pattern & parent) throw (std::invalid_argument) {
 	struct pattern child;
 
-	if (_source[i] == '(' && !isEscaped(i))
+	if (_source[i] == '\\' && !isEscaped(i))
+		return (_handleEscapeCharacter(i));
+	else if (_source[i] == '(' && !isEscaped(i))
 		_handleParenthesis(i, child);
 	else if (_source[i] == '|' && !isEscaped(i))
 		_handlePipe(i, child, parent);
@@ -77,6 +79,8 @@ void Regex::_handleBracket(size_t & i, struct pattern & child) {
 	size_t closingBracketPos = _source.find(']', i + 1);
 	if (closingBracketPos == string::npos)
 		throw std::invalid_argument("Regex missing ]");
+	else if (closingBracketPos == i + 1)
+		throw std::invalid_argument("Regex bracket can't be empty");
 	child.value = string(_source, i, closingBracketPos - i + 1);
 	i = closingBracketPos + 1;
 }
@@ -84,6 +88,10 @@ void Regex::_handleBracket(size_t & i, struct pattern & child) {
 void Regex::_handleCharacter(size_t & i, struct pattern & child) {
 	child.value = _source[i];
 	child.isEscaped = isEscaped(i);
+	++i;
+}
+
+void Regex::_handleEscapeCharacter(size_t & i) const {
 	++i;
 }
 

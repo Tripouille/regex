@@ -37,6 +37,7 @@ class Regex {
         void _handlePipe(size_t & i, struct pattern & pipe, struct pattern & parent);
         void _handleBracket(size_t & i, struct pattern & child);
         void _handleCharacter(size_t & i, struct pattern & child);
+        void _handleEscapeCharacter(size_t & i) const;
         void _setPatternMinMax(size_t & i, struct pattern & p);
         void _insertPattern(struct pattern & parent, struct pattern & child);
 
