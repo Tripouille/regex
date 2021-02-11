@@ -5,7 +5,6 @@ Regex::Regex(string const & regex) throw (std::invalid_argument) : _source(regex
 		throw std::invalid_argument("Regex can't be empty");
 	_checkPipeValidity();
 	_checkParenthesisValidity();
-
 	size_t i = 0;
 	while (_source[i])
 		_extractPattern(i, _root);
@@ -19,56 +18,55 @@ void Regex::_extractPattern(size_t & i, struct pattern & parent) throw (std::inv
 	struct pattern child;
 
 	if (_source[i] == '(' && !isEscaped(i))
-	{
-		child.value = "Parenthesis";
-		size_t parenthesisEnd = _getParenthesisEnd(i);
-		++i;
-		while (i < parenthesisEnd)
-			_extractPattern(i , child);
-		i = parenthesisEnd + 1;
-	}
+		_handleParenthesis(i, child);
 	else if (_source[i] == '|' && !isEscaped(i))
-	{
-		child.value = "Pipe";
-		parent.isAlternative = true;
-		size_t pipeEnd = _getPipeEnd(i);
-		++i;
-		while (i < pipeEnd)
-			_extractPattern(i , child);
-		i = pipeEnd;
-	}
+		_handlePipe(i, child, parent);
 	else if (_source[i] == '[' && !isEscaped(i))
-	{
-		size_t closingBracketPos = _source.find(']', i + 1);
-		if (closingBracketPos == string::npos)
-			throw std::invalid_argument("Regex missing ]");
-		child.value = string(_source, i, closingBracketPos - i + 1);
-		i = closingBracketPos + 1;
-	}
-	else if (_source[i] == '.' && !isEscaped(i))
-	{
-		child.value = ".";
-		++i;
-	}
+		_handleBracket(i, child);
 	else
-	{
-		child.value = _source[i];
-		child.isEscaped = isEscaped(i);
-		++i;
-	}
-
-	/* Set min and max and add the pattern */
+		_handleCharacter(i, child);
 	_setPatternMinMax(i, child);
+	_insertPattern(parent, child);
+}
+
+
+void Regex::_handleParenthesis(size_t & i, struct pattern & parenthesis) {
+	parenthesis.value = "Parenthesis";
+	size_t parenthesisEnd = _getParenthesisEnd(i);
+	++i;
+	while (i < parenthesisEnd)
+		_extractPattern(i , parenthesis);
+	++i;
+}
+
+void Regex::_handlePipe(size_t & i, struct pattern & pipe, struct pattern & parent) {
+	pipe.value = "Pipe";
+	parent.isAlternative = true;
+	size_t pipeEnd = _getPipeEnd(i);
+	++i;
+	while (i < pipeEnd)
+		_extractPattern(i , pipe);
+}
+
+void Regex::_handleBracket(size_t & i, struct pattern & child) {
+	size_t closingBracketPos = _source.find(']', i + 1);
+	if (closingBracketPos == string::npos)
+		throw std::invalid_argument("Regex missing ]");
+	child.value = string(_source, i, closingBracketPos - i + 1);
+	i = closingBracketPos + 1;
+}
+
+void Regex::_handleCharacter(size_t & i, struct pattern & child) {
+	child.value = _source[i];
+	child.isEscaped = isEscaped(i);
+	++i;
+}
+
+void Regex::_insertPattern(struct pattern & parent, struct pattern & child) {
 	if (parent.isAlternative)
 		parent.sequence.back().alternative.push_back(child);
 	else
 		parent.sequence.push_back(child);
-}
-
-void Regex::_handlePipe(size_t & i, struct pattern & parent)
-{
-	parent.isAlternative = true;
-	++i;
 }
 
 size_t Regex::_getParenthesisEnd(size_t i) throw (std::invalid_argument) {

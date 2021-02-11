@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    Regex r("a|b()");
+    Regex r("(a|b).*");
     return (0);
 }
 

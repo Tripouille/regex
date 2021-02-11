@@ -32,7 +32,12 @@ class Regex {
         Regex & operator=(Regex const & o);
 
         void _extractPattern(size_t & i, struct pattern & parent) throw (std::invalid_argument);
-        void _handlePipe(size_t & i, struct pattern & parent);
+        void _handleParenthesis(size_t & i, struct pattern & parenthesis);
+        void _handlePipe(size_t & i, struct pattern & pipe, struct pattern & parent);
+        void _handleBracket(size_t & i, struct pattern & child);
+        void _handleCharacter(size_t & i, struct pattern & child);
+        void _insertPattern(struct pattern & parent, struct pattern & child);
+
 
         void _setPatternMinMax(size_t & i, struct pattern & p);
 
