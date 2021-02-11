@@ -14,6 +14,32 @@ Regex::~Regex() {
     showPattern(_root.sequence, 1);
 }
 
+/* Public */
+
+string Regex::getSource() const {
+	return (_source);
+}
+
+bool Regex::match(string const & str) const {
+	size_t pos = 0;
+	return (_matchSequence(str, pos, _root.sequence));
+}
+
+/* Private */
+
+bool Regex::_matchSequence(string const & str, size_t & pos, vector<struct pattern> const & sequence) const {
+	size_t sequenceSize = sequence.size();
+	size_t i = 0;
+
+	for (; i < sequenceSize && _matchPattern(str, pos, sequence[i]); ++i);
+	return (i == sequenceSize);
+}
+
+bool Regex::_matchPattern(string const & str, size_t & pos, struct pattern const & pattern) const {
+	return (str.size() == pos && pattern.isAlternative);
+}
+
+
 void Regex::_extractPattern(size_t & i, struct pattern & parent) throw (std::invalid_argument) {
 	struct pattern child;
 
@@ -28,7 +54,6 @@ void Regex::_extractPattern(size_t & i, struct pattern & parent) throw (std::inv
 	_setPatternMinMax(i, child);
 	_insertPattern(parent, child);
 }
-
 
 void Regex::_handleParenthesis(size_t & i, struct pattern & parenthesis) {
 	parenthesis.value = "Parenthesis";

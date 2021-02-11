@@ -24,7 +24,8 @@ class Regex {
     public:
         Regex(string const & regex) throw (std::invalid_argument);
         ~Regex();
-        void showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);
+        string getSource() const;
+        bool match(string const & str) const;
 
     private:
         Regex();
@@ -36,20 +37,24 @@ class Regex {
         void _handlePipe(size_t & i, struct pattern & pipe, struct pattern & parent);
         void _handleBracket(size_t & i, struct pattern & child);
         void _handleCharacter(size_t & i, struct pattern & child);
+        void _setPatternMinMax(size_t & i, struct pattern & p);
         void _insertPattern(struct pattern & parent, struct pattern & child);
 
-
-        void _setPatternMinMax(size_t & i, struct pattern & p);
-
+        bool isEscaped(size_t i) const;
         size_t _getParenthesisEnd(size_t i) throw (std::invalid_argument);
         size_t _getPipeEnd(size_t i) throw (std::invalid_argument);
-        bool isEscaped(size_t i) const;
 
         void _checkPipeValidity() const throw (std::invalid_argument);
         void _checkParenthesisValidity() const throw (std::invalid_argument);
 
+        bool _matchSequence(string const & str, size_t & pos, vector<struct pattern> const & sequence) const;
+        bool _matchPattern(string const & str, size_t & pos, struct pattern const & pattern) const;
+        //debug
+        void showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);
+
+        /* Variables */
         struct pattern _root;
-        string _source;
+        string const _source;
 };
 
 #endif
