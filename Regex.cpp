@@ -11,7 +11,7 @@ Regex::Regex(string const & regex) throw (std::invalid_argument) : _source(regex
 }
 
 Regex::~Regex() {
-    showPattern(_root.sequence, 1);
+    //showPattern(_root.sequence, 1);
 }
 
 /* Public */
@@ -22,20 +22,64 @@ string Regex::getSource() const {
 
 bool Regex::match(string const & str) const {
 	size_t pos = 0;
-	return (_matchSequence(str, pos, _root.sequence));
+	size_t limit = str.size();
+	size_t testedPos;
+	
+	for (; pos < limit; ++pos)
+	{
+		testedPos = pos;
+		std::cout << std::endl << ">>>>>>>>>> TestedPos = " << testedPos << " <<<<<<<<<<<<<<" << std::endl;
+		if (_matchSequence(str, testedPos, _root.sequence))
+			return (true);
+	}
+	return (false);
 }
 
 /* Private */
 
 bool Regex::_matchSequence(string const & str, size_t & pos, vector<struct pattern> const & sequence) const {
 	size_t sequenceSize = sequence.size();
-	size_t i = 0;
+	size_t alternativeSize;
+	size_t iSequence = 0;
+	size_t iAlternative = 0;
 
-	for (; i < sequenceSize && _matchPattern(str, pos, sequence[i]); ++i);
-	return (i == sequenceSize);
+	for (; iSequence < sequenceSize; ++iSequence)
+	{
+		std::cout << "Actual iSequence = " << iSequence << std::endl;
+		if (!_matchPattern(str, pos, sequence[iSequence]) && sequence[iSequence].min > 0)
+		{
+			alternativeSize = sequence[iSequence].alternative.size();
+			std::cout << sequence[iSequence].value << " miss match / alternative = " << alternativeSize << std::endl;
+			if (alternativeSize == 0)
+				return (false);
+			for (; iAlternative < alternativeSize && !_matchPattern(str, pos, sequence[iSequence].alternative[iAlternative]); ++iAlternative);
+			if (iAlternative == alternativeSize)
+				return (false);
+		}
+		else
+			std::cout << sequence[iSequence].value << " match !" << std::endl;
+	}
+	return (iSequence == sequenceSize);
 }
 
 bool Regex::_matchPattern(string const & str, size_t & pos, struct pattern const & pattern) const {
+	if (pattern.sequence.size() != 0)
+		return (_matchSequence(str, pos, pattern.sequence));
+	if (pattern.isEscaped || string("(|[").find(pattern.value[0]) == string::npos)
+	{
+		if (pattern.value[0] == str[pos])
+		{
+			++pos;
+			return (true);
+		}
+		return (false);
+	}
+	else if (pattern.value[0] == '(')
+		return (_matchParenthesis(str, pos, pattern));
+	return (str.size() == pos && pattern.isAlternative);
+}
+
+bool Regex::_matchParenthesis(string const & str, size_t & pos, struct pattern const & pattern) const {
 	return (str.size() == pos && pattern.isAlternative);
 }
 

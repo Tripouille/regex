@@ -50,6 +50,7 @@ class Regex {
 
         bool _matchSequence(string const & str, size_t & pos, vector<struct pattern> const & sequence) const;
         bool _matchPattern(string const & str, size_t & pos, struct pattern const & pattern) const;
+        bool _matchParenthesis(string const & str, size_t & pos, struct pattern const & pattern) const;
         //debug
         void showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);
 
