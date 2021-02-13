@@ -33,17 +33,16 @@ class Regex {
         Regex(Regex const & o);
         Regex & operator=(Regex const & o);
 
-        void _extractPattern(size_t & i, struct pattern & parent) throw (std::invalid_argument);
-        void _handleParenthesis(size_t & i, struct pattern & parenthesis);
-        void _handlePipe(size_t & i, struct pattern & pipe, struct pattern & parent);
-        void _handleBracket(size_t & i, struct pattern & child);
-        void _handleSequence(size_t & i, struct pattern & child, struct pattern & parent);
-        void _handleCharacter(size_t & i, struct pattern & child);
+        void _handleSequence(size_t & i, struct pattern & parent) throw (std::invalid_argument);
+        void _handleParenthesis(size_t & i, struct pattern & sequence);
+        void _handleBracket(size_t & i, struct pattern & sequence);
+        void _handlePipe(size_t & i, struct pattern & sequence, struct pattern & parent);
+        void _handleCharacter(size_t & i, struct pattern & sequence);
         void _handleEscapeCharacter(size_t & i) const;
-        void _setPatternMinMax(size_t & i, struct pattern & p);
-        void _insertPattern(struct pattern & parent, struct pattern & child);
 
-        bool isEscaped(size_t i) const;
+        void _setPatternMinMax(size_t & i, struct pattern & p);
+        void _insertSequence(struct pattern & parent, struct pattern & child);
+
         size_t _getParenthesisEnd(size_t i);
         size_t _getPipeEnd(size_t i);
         size_t _getCharacterEnd(size_t i);
@@ -56,9 +55,14 @@ class Regex {
         bool _matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const;
         bool _matchParenthesis(string const & str, size_t & strPos, struct pattern const & pattern) const;
 
-        bool _isRealParenthesis(size_t i) const;
+        bool _isEscaped(size_t i) const;
+        bool _isRealOpeningParenthesis(size_t i) const;
+        bool _isRealClosingParenthesis(size_t i) const;
+        bool _isRealOpeningBracket(size_t i) const;
+        bool _isRealClosingBracket(size_t i) const;
         bool _isRealPipe(size_t i) const;
-        bool _isRealBracket(size_t i) const;
+        bool _isQuantifier(size_t i) const;
+        bool _isDigit(size_t i) const;
         //debug
         void showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);
 
