@@ -12,14 +12,18 @@ using std::vector;
 
 class Regex {
 
+
+
     struct pattern {
         pattern(string const & v = "ROOT", size_t mi = 1, size_t ma = 1) : value(v), min(mi), max(ma), isAlternative(false), isEscaped(false) {}
+
         string value;
         size_t min, max;
-        vector<struct pattern> sequence;
-        vector<struct pattern> alternative;
         bool isAlternative;
         bool isEscaped;
+
+        vector<struct pattern> sequence;
+        vector<struct pattern> alternative;
     };
 
     public:
@@ -61,6 +65,7 @@ class Regex {
         bool _isRealOpeningBracket(size_t i) const;
         bool _isRealClosingBracket(size_t i) const;
         bool _isRealPipe(size_t i) const;
+        bool _isRealEscape(size_t i) const;
         bool _isQuantifier(size_t i) const;
         bool _isDigit(size_t i) const;
         //debug
