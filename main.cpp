@@ -3,7 +3,7 @@
 int main(void)
 {
     //handleParenthesis appelle handleSequence qui a la fin appelle handleCharacter sur le ')'
-    Regex r("a|bc"); 
+    Regex r("(a)|(bc)[a]"); 
     //string str("acd");
     //std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
     return (0);

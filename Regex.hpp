@@ -15,7 +15,7 @@ class Regex {
 
 
     struct pattern {
-        pattern(string const & v = "ROOT", size_t mi = 1, size_t ma = 1) : value(v), min(mi), max(ma), isAlternative(false), isEscaped(false) {}
+        pattern(string const & v = "default", size_t mi = 1, size_t ma = 1) : value(v), min(mi), max(ma), isAlternative(false), isEscaped(false) {}
 
         string value;
         size_t min, max;
@@ -37,7 +37,8 @@ class Regex {
         Regex(Regex const & o);
         Regex & operator=(Regex const & o);
 
-        void _handleSequence(size_t & i, struct pattern & parent) throw (std::invalid_argument);
+        void _createSequence(size_t & i, struct pattern & parent) throw (std::invalid_argument);
+        void _handleSequence(size_t & i, struct pattern & sequence, struct pattern & parent) throw (std::invalid_argument);
         void _handleParenthesis(size_t & i, struct pattern & sequence);
         void _handleBracket(size_t & i, struct pattern & sequence);
         void _handlePipe(size_t & i, struct pattern & sequence, struct pattern & parent);
@@ -45,7 +46,7 @@ class Regex {
         void _handleEscapeCharacter(size_t & i) const;
 
         void _setPatternMinMax(size_t & i, struct pattern & p);
-        void _insertSequence(struct pattern & parent, struct pattern & child);
+        void _insertSequence(struct pattern & sequence, struct pattern & parent);
 
         size_t _getParenthesisEnd(size_t i);
         size_t _getPipeEnd(size_t i);

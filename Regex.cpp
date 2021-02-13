@@ -7,7 +7,7 @@ Regex::Regex(string const & regex) throw (std::invalid_argument) : _source(regex
 	_checkParenthesisValidity();
 	size_t i = 0;
 	while (_source[i])
-		_handleSequence(i, _root);
+		_createSequence(i, _root);
 }
 
 Regex::~Regex() {
@@ -94,25 +94,29 @@ bool Regex::_matchParenthesis(string const & str, size_t & strPos, struct patter
 
 /* Parsing */
 
-void Regex::_handleSequence(size_t & i, struct pattern & parent)  throw (std::invalid_argument) {
+void Regex::_createSequence(size_t & i, struct pattern & parent)  throw (std::invalid_argument) {
 	struct pattern sequence("Sequence");
 	size_t sequenceEnd = _getSequenceEnd(i);
 	//std::cerr << "Debut de _handleSequence avec i = " << i << std::endl;
 	//std::cerr << "_getSequenceEnd = " << sequenceEnd << std::endl;
 	while (i < sequenceEnd) {
 		//std::cerr << "i dans while de _handleSequence = " << i << std::endl;
-		if (_isRealEscape(i))
-			_handleEscapeCharacter(i);
-		else if (_isRealOpeningParenthesis(i))
-			_handleParenthesis(i, sequence);
-		else if (_isRealOpeningBracket(i))
-			_handleBracket(i, sequence);
-		else if (_isRealPipe(i))
-			_handlePipe(i, sequence, parent);
-		else
-			_handleCharacter(i , sequence);
+		_handleSequence(i, sequence, parent);
 	}
-	_insertSequence(parent, sequence);
+	_insertSequence(sequence, parent);
+}
+
+void Regex::_handleSequence(size_t & i, struct pattern & sequence, struct pattern & parent)  throw (std::invalid_argument) {
+	if (_isRealEscape(i))
+		_handleEscapeCharacter(i);
+	else if (_isRealOpeningParenthesis(i))
+		_handleParenthesis(i, sequence);
+	else if (_isRealOpeningBracket(i))
+		_handleBracket(i, sequence);
+	else if (_isRealPipe(i))
+		_handlePipe(i, sequence, parent);
+	else
+		_handleCharacter(i , sequence);
 }
 
 void Regex::_handleParenthesis(size_t & i, struct pattern & sequence) {
@@ -125,7 +129,7 @@ void Regex::_handleParenthesis(size_t & i, struct pattern & sequence) {
 	while (i < parenthesisEnd)
 	{
 		std::cerr << "i dans while de _handleParenthesis = " << i << std::endl;
-		_handleSequence(i , parenthesis);
+		_createSequence(i , parenthesis);
 	}
 	++i;
 	_setPatternMinMax(i, parenthesis);
@@ -151,20 +155,19 @@ void Regex::_handleBracket(size_t & i, struct pattern & sequence) {
 }
 
 void Regex::_handlePipe(size_t & i, struct pattern & sequence, struct pattern & parent) {
-	struct pattern pipe("Pipe");
-
-	std::cerr << "Debut de _handlePipe i = " << i << std::endl;
+	sequence.value = "Pipe";
 	parent.isAlternative = true;
 	++i;
 	size_t pipeEnd = _getPipeEnd(i);
-	std::cerr << "pipeEnd de _handlePipe = " << pipeEnd << std::endl;
+	//std::cerr << "Debut de _handlePipe i = " << i << std::endl;
+	//std::cerr << "pipeEnd de _handlePipe = " << pipeEnd << std::endl;
 	while (i < pipeEnd)
 	{
 		//std::cerr << "i dans while de _handlePipe = " << i << std::endl;
-		_handleSequence(i , pipe);
+		_handleSequence(i, sequence, parent);
 	}
-	sequence.sequence.push_back(pipe);
-	std::cerr << "Fin de _handlePipe i = " << i << std::endl;
+	//sequence.sequence.push_back(pipe);
+	//std::cerr << "Fin de _handlePipe i = " << i << std::endl;
 }
 
 void Regex::_handleCharacter(size_t & i, struct pattern & sequence) {
@@ -191,11 +194,11 @@ void Regex::_handleEscapeCharacter(size_t & i) const {
 	++i;
 }
 
-void Regex::_insertSequence(struct pattern & parent, struct pattern & child) {
+void Regex::_insertSequence(struct pattern & sequence, struct pattern & parent) {
 	if (parent.isAlternative)
-		parent.sequence.back().alternative.push_back(child);
+		parent.sequence.back().alternative.push_back(sequence);
 	else
-		parent.sequence.push_back(child);
+		parent.sequence.push_back(sequence);
 }
 
 size_t Regex::_getParenthesisEnd(size_t i) {
