@@ -31,7 +31,7 @@ bool Regex::match(string const & str) const {
 	for (; pos < limit; ++pos)
 	{
 		testedPos = pos;
-		std::cout << std::endl << ">>>>>>>>>> TestedPos = " << pos << " <<<<<<<<<<<<<<" << std::endl;
+		std::cerr << std::endl << ">>>>>>>>>> TestedPos = " << pos << " <<<<<<<<<<<<<<" << std::endl;
 		if (_matchSequence(str, testedPos, _root.sequence, 0))
 			return (true);
 	}
@@ -45,14 +45,14 @@ bool Regex::_matchSequence(string const & str, size_t & strPos, vector<struct pa
 	size_t iAlternative;
 	size_t strPosSave = strPos;
 	
-	std::cout << "Actual sequencePos = " << sequencePos << " Actual strPos = " << strPos <<  std::endl;
+	std::cerr << "Actual sequencePos = " << sequencePos << " Actual strPos = " << strPos <<  std::endl;
 	if (sequencePos == sequence.size())
 		return (true);
 	for (size_t repeat = 0; repeat < sequence[sequencePos].max; ++repeat)
 	{
 		if (_matchPattern(str, strPos, sequence[sequencePos]))
 		{
-			std::cout << sequence[sequencePos].value << " match ! repeat = " << repeat << std::endl;
+			std::cerr << sequence[sequencePos].value << " match ! repeat = " << repeat << std::endl;
 			if (_matchSequence(str, strPos, sequence, sequencePos + 1) == true)
 				return (true);
 		}
@@ -61,9 +61,9 @@ bool Regex::_matchSequence(string const & str, size_t & strPos, vector<struct pa
 			strPos = strPosSave;
 			iAlternative = 0;
 			alternativeSize = sequence[sequencePos].alternative.size();
-			std::cout << sequence[sequencePos].value << " miss match / alternative = " << alternativeSize << std::endl;
+			std::cerr << sequence[sequencePos].value << " miss match / alternative = " << alternativeSize << std::endl;
 			for (; iAlternative < alternativeSize && !_matchPattern(str, strPos, sequence[sequencePos].alternative[iAlternative]); ++iAlternative);
-			//std::cout << "iAlternative = " << iAlternative << "  alternativeSize = " << alternativeSize << std::endl;
+			//std::cerr << "iAlternative = " << iAlternative << "  alternativeSize = " << alternativeSize << std::endl;
 			if ((iAlternative < alternativeSize || sequence[sequencePos].min == 0)
 			&& _matchSequence(str, strPos, sequence, sequencePos + 1) == true)
 				return (true);
@@ -75,7 +75,7 @@ bool Regex::_matchSequence(string const & str, size_t & strPos, vector<struct pa
 }
 
 bool Regex::_matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const {
-	//std::cout << pattern.value << " in matchPattern / sequence size = " << pattern.sequence.size() << std::endl;
+	//std::cerr << pattern.value << " in matchPattern / sequence size = " << pattern.sequence.size() << std::endl;
 	if (pattern.sequence.size() != 0)
 		return (_matchSequence(str, strPos, pattern.sequence, 0));
 	if (pattern.isEscaped || string("(|[").find(pattern.value[0]) == string::npos)
@@ -97,11 +97,11 @@ bool Regex::_matchParenthesis(string const & str, size_t & strPos, struct patter
 void Regex::_handleSequence(size_t & i, struct pattern & parent)  throw (std::invalid_argument) {
 	struct pattern sequence("Sequence");
 
-	//std::cout << "Debut de _handleSequence avec i = " << i << std::endl;
+	//std::cerr << "Debut de _handleSequence avec i = " << i << std::endl;
 	size_t sequenceEnd = _getSequenceEnd(i);
-	//std::cout << "_getSequenceEnd = " << sequenceEnd << std::endl;
+	//std::cerr << "_getSequenceEnd = " << sequenceEnd << std::endl;
 	while (i < sequenceEnd) {
-		std::cout << "i dans while de _handleSequence = " << i << std::endl;
+		std::cerr << "i dans while de _handleSequence = " << i << std::endl;
 		if (_source[i] == '(' && !_isEscaped(i))
 			_handleParenthesis(i, sequence);
 		else if (_source[i] == '[' && !_isEscaped(i))
@@ -112,32 +112,32 @@ void Regex::_handleSequence(size_t & i, struct pattern & parent)  throw (std::in
 			_handleCharacter(i , sequence);
 	}
 	_insertSequence(parent, sequence);
-	//std::cout << "Fin de _handleSequence avec i = " << i << std::endl;
+	//std::cerr << "Fin de _handleSequence avec i = " << i << std::endl;
 }
 
 void Regex::_handleParenthesis(size_t & i, struct pattern & sequence) {
 	struct pattern parenthesis("Parenthesis");
 
-	std::cout << "Debut de _handleParenthesis" << std::endl;
+	std::cerr << "Debut de _handleParenthesis" << std::endl;
 	++i;
 	size_t parenthesisEnd = _getParenthesisEnd(i);
 	std::cerr << "parenthesisEnd = " << parenthesisEnd << std::endl;
 	while (i < parenthesisEnd)
 	{
-		std::cout << "i dans while de _handleParenthesis = " << i << std::endl;
+		std::cerr << "i dans while de _handleParenthesis = " << i << std::endl;
 		_handleSequence(i , parenthesis);
 	}
+	++i;
 	_setPatternMinMax(i, parenthesis);
 	sequence.sequence.push_back(parenthesis);
-	++i;
-	std::cout << "Fin de _handleParenthesis i = " << i << std::endl;
+	std::cerr << "Fin de _handleParenthesis i = " << i << std::endl;
 
 }
 
 void Regex::_handleBracket(size_t & i, struct pattern & sequence) {
 	struct pattern bracket;
 
-	std::cout << "Debut de _handleBracket" << std::endl;
+	std::cerr << "Debut de _handleBracket" << std::endl;
 	size_t closingBracketPos = _source.find(']', i + 1);
 	if (closingBracketPos == string::npos)
 		throw std::invalid_argument("Regex missing ]");
@@ -145,37 +145,37 @@ void Regex::_handleBracket(size_t & i, struct pattern & sequence) {
 		throw std::invalid_argument("Regex bracket can't be empty");
 
 	bracket.value = string(_source, i, closingBracketPos - i + 1);
-	_setPatternMinMax(i, bracket);
 	i = closingBracketPos + 1;
+	_setPatternMinMax(i, bracket);
 	sequence.sequence.push_back(bracket);
 }
 
 void Regex::_handlePipe(size_t & i, struct pattern & sequence, struct pattern & parent) {
 	struct pattern pipe("Pipe");
 
-	std::cout << "Debut de _handlePipe i = " << i << std::endl;
+	std::cerr << "Debut de _handlePipe i = " << i << std::endl;
 	parent.isAlternative = true;
 	++i;
 	size_t pipeEnd = _getPipeEnd(i);
-	std::cout << "pipeEnd de _handlePipe = " << pipeEnd << std::endl;
+	std::cerr << "pipeEnd de _handlePipe = " << pipeEnd << std::endl;
 	while (i < pipeEnd)
 	{
-		//std::cout << "i dans while de _handlePipe = " << i << std::endl;
+		//std::cerr << "i dans while de _handlePipe = " << i << std::endl;
 		_handleSequence(i , pipe);
 	}
 	sequence.sequence.push_back(pipe);
-	std::cout << "Fin de _handlePipe i = " << i << std::endl;
+	std::cerr << "Fin de _handlePipe i = " << i << std::endl;
 }
 
 void Regex::_handleCharacter(size_t & i, struct pattern & sequence) {
 	struct pattern characters("Characters");
 
-	std::cout << "Debut de _handleCharacter i = " << i << std::endl;
+	std::cerr << "Debut de _handleCharacter i = " << i << std::endl;
 	size_t characterEnd = _getCharacterEnd(i);
 	std::cerr << "characterEnd = " << characterEnd << std::endl;
 	while (i < characterEnd)
 	{
-		//std::cout << "i dans while de _handleCharacter = " << i << std::endl;
+		//std::cerr << "i dans while de _handleCharacter = " << i << std::endl;
 		struct pattern actualChar;
 		actualChar.value = _source[i];
 		actualChar.isEscaped = _isEscaped(i);
@@ -184,7 +184,7 @@ void Regex::_handleCharacter(size_t & i, struct pattern & sequence) {
 		characters.sequence.push_back(actualChar);
 	}
 	sequence.sequence.push_back(characters);
-	std::cout << "Fin de _handleCharacter" << std::endl;
+	std::cerr << "Fin de _handleCharacter" << std::endl;
 }
 
 void Regex::_handleEscapeCharacter(size_t & i) const {
@@ -258,7 +258,7 @@ void Regex::_setPatternMinMax(size_t & i, struct pattern & p) {
 		{p.min = 0; p.max = 1;}
 	else
 	{
-		//std::cout << "_setPattern not found" << std::endl;
+		//std::cerr << "_setPattern not found" << std::endl;
 		return ;
 	}
 	++i;
@@ -276,9 +276,9 @@ void Regex::showPattern(vector<struct pattern> & p, int x, bool isAlternative) {
 	{
 		if (isAlternative)
 			std::cout << "IS ALTERNATIVE " << std::endl;
-		std::cout << "prof = " << x << " actual sequence i = " << i << std::endl;
-		std::cout << "pattern value = " << p[i].value << " min = " << p[i].min << " max = " << p[i].max << std::endl;
-		std::cout << "pattern sequence size = " << p[i].sequence.size() <<  "  pattern alternative size = " << p[i].alternative.size() << std::endl;
+		std::cout << "prof = " << x << " actual sequence i = " << i;
+		std::cout << ", pattern value = " << p[i].value << " min = " << p[i].min << " max = " << p[i].max << std::endl;
+		//std::cout << "pattern sequence size = " << p[i].sequence.size() <<  "  pattern alternative size = " << p[i].alternative.size() << std::endl;
 		if (p[i].sequence.size())
 		{
 			std::cout << "rest of sequence:" << std::endl;

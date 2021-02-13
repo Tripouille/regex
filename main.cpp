@@ -3,7 +3,7 @@
 int main(void)
 {
     //handleParenthesis appelle handleSequence qui a la fin appelle handleCharacter sur le ')'
-    Regex r("a|(c)"); 
+    Regex r("((a|(c))|lol[qwe])?"); 
     //string str("acd");
     //std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
     return (0);
