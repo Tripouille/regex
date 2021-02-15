@@ -60,16 +60,17 @@ class Regex {
 
         bool _matchSequence(string const & str, size_t & strPos, vector<struct pattern> const & sequence, size_t sequencePos) const;
         bool _matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const;
-        bool _matchParenthesis(string const & str, size_t & strPos, struct pattern const & pattern) const;
 
-        bool _isEscaped(size_t i) const;
+        bool _isEscaped(ssize_t i) const;
         bool _isRealOpeningParenthesis(size_t i) const;
         bool _isRealClosingParenthesis(size_t i) const;
         bool _isRealOpeningBracket(size_t i) const;
         bool _isRealClosingBracket(size_t i) const;
         bool _isRealPipe(size_t i) const;
         bool _isRealEscape(size_t i) const;
-        bool _isQuantifier(size_t i) const;
+        bool _isQuantifier(size_t i) const throw(std::invalid_argument);
+        bool _isRangeQuantifier(size_t i) const throw(std::invalid_argument);
+        void _setRangeQuantifier(size_t & i, struct pattern & p) const;
         bool _isDigit(size_t i) const;
         //debug
         void showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);

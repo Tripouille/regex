@@ -6,14 +6,12 @@ Regex::Regex(string const & regex) throw (std::invalid_argument) : _source(regex
 	_checkPipeValidity();
 	_checkParenthesisValidity();
 	size_t i = 0;
-	std::cout << "quantifier : " << std::boolalpha << _isQuantifier(i) << std::endl;
-	return ;
 	while (_source[i])
 		_createSequence(i, _root);
 }
 
 Regex::~Regex() {
-    showPattern(_root.sequence, 1);
+    //showPattern(_root.sequence, 1);
 }
 
 /* Public */
@@ -23,22 +21,23 @@ string Regex::getSource() const {
 }
 
 bool Regex::match(string const & str) const {
-	size_t pos = 0;
-	size_t testedPos = 0;
+	size_t strPos = 0;
+	size_t testedStrPos = 0;
 	size_t limit = str.size();
 	
-	for (; pos < limit; ++pos)
-	{
-		testedPos = pos;
-		std::cerr << std::endl << ">>>>>>>>>> TestedPos = " << pos << " <<<<<<<<<<<<<<" << std::endl;
-		if (_matchSequence(str, testedPos, _root.sequence, 0))
+	for (; strPos < limit; ++strPos) {
+		testedStrPos = strPos;
+		std::cerr << std::endl << ">>>>>>>>>> TestedPos = " << strPos << " <<<<<<<<<<<<<<" << std::endl;
+		if (_matchSequence(str, testedStrPos, _root.sequence, 0))
+		{
+			std::cout << "matched string = [" << str.substr(strPos, testedStrPos - strPos) << "]" << std::endl;
 			return (true);
+		}
 	}
 	return (false);
 }
 
 /* Match */
-
 bool Regex::_matchSequence(string const & str, size_t & strPos, vector<struct pattern> const & sequence, size_t sequencePos) const {
 	size_t alternativeSize;
 	size_t iAlternative;
@@ -47,25 +46,34 @@ bool Regex::_matchSequence(string const & str, size_t & strPos, vector<struct pa
 	std::cerr << "Actual sequencePos = " << sequencePos << " Actual strPos = " << strPos <<  std::endl;
 	if (sequencePos == sequence.size())
 		return (true);
-	for (size_t repeat = 0; repeat < sequence[sequencePos].max; ++repeat)
+	if (sequence[sequencePos].min == 0
+	&& _matchSequence(str, strPos, sequence, sequencePos + 1) == true)
+		return (true);
+	for (size_t repeat = 1; repeat <= sequence[sequencePos].max; ++repeat)
 	{
+		strPos = strPosSave;
+		std::cerr << "repeat = " << repeat << std::endl;
 		if (_matchPattern(str, strPos, sequence[sequencePos]))
 		{
+			strPosSave = strPos;
 			std::cerr << sequence[sequencePos].value << " match ! repeat = " << repeat << std::endl;
-			if (_matchSequence(str, strPos, sequence, sequencePos + 1) == true)
+			if (repeat >= sequence[sequencePos].min && _matchSequence(str, strPos, sequence, sequencePos + 1) == true)
 				return (true);
 		}
 		else
 		{
-			strPos = strPosSave;
 			iAlternative = 0;
 			alternativeSize = sequence[sequencePos].alternative.size();
 			std::cerr << sequence[sequencePos].value << " miss match / alternative = " << alternativeSize << std::endl;
 			for (; iAlternative < alternativeSize && !_matchPattern(str, strPos, sequence[sequencePos].alternative[iAlternative]); ++iAlternative);
 			//std::cerr << "iAlternative = " << iAlternative << "  alternativeSize = " << alternativeSize << std::endl;
-			if ((iAlternative < alternativeSize || sequence[sequencePos].min == 0)
-			&& _matchSequence(str, strPos, sequence, sequencePos + 1) == true)
-				return (true);
+			if (iAlternative < alternativeSize)
+			{
+				strPosSave = strPos;
+				if (repeat >= sequence[sequencePos].min
+				&& _matchSequence(str, strPos, sequence, sequencePos + 1) == true)
+					return (true);
+			}
 			else
 				return (false);
 		}
@@ -89,11 +97,6 @@ bool Regex::_matchPattern(string const & str, size_t & strPos, struct pattern co
 	return (false);
 }
 
-bool Regex::_matchParenthesis(string const & str, size_t & strPos, struct pattern const & pattern) const {
-	return (str.size() == strPos && pattern.isAlternative);
-}
-
-
 /* Parsing */
 
 void Regex::_createSequence(size_t & i, struct pattern & parent)  throw (std::invalid_argument) {
@@ -109,6 +112,8 @@ void Regex::_createSequence(size_t & i, struct pattern & parent)  throw (std::in
 }
 
 void Regex::_handleSequence(size_t & i, struct pattern & sequence, struct pattern & parent)  throw (std::invalid_argument) {
+	if (_isQuantifier(i))
+		throw std::invalid_argument("Regex the preceding token is not quantifiable");
 	if (_isRealEscape(i))
 		_handleEscapeCharacter(i);
 	else if (_isRealOpeningParenthesis(i))
@@ -248,17 +253,16 @@ size_t Regex::_getCharacterEnd(size_t i) {
 
 void Regex::_setPatternMinMax(size_t & i, struct pattern & p) {
 	if (_source[i] == '*' && !_isEscaped(i))
-		{p.min = 0; p.max = UNLIMITED;}
+		{p.min = 0; p.max = UNLIMITED; ++i;}
 	else if (_source[i] == '+' && !_isEscaped(i))
-		{p.min = 1; p.max = UNLIMITED;}
+		{p.min = 1; p.max = UNLIMITED; ++i;}
 	else if (_source[i] == '?' && !_isEscaped(i))
-		{p.min = 0; p.max = 1;}
-	else
-		return ;
-	++i;
+		{p.min = 0; p.max = 1; ++i;}
+	else if (_isRangeQuantifier(i))
+		_setRangeQuantifier(i, p);
 }
 
-bool Regex::_isEscaped(size_t i) const {
+bool Regex::_isEscaped(ssize_t i) const {
 	size_t count = 0;
 	while (--i >= 0 && _source[i] == '\\')
 		++count;
@@ -336,35 +340,38 @@ bool Regex::_isRealEscape(size_t i) const {
 	return (_source[i] == '\\' && !_isEscaped(i));
 }
 
-bool Regex::_isQuantifier(size_t i) const { // + ? * {2} {2,} {0,3}
+bool Regex::_isQuantifier(size_t i) const throw(std::invalid_argument) {
 	if (_isEscaped(i))
 		return (false);
 	if (_source[i] == '*' || _source[i] == '?' || _source[i] == '+')
 		return (true);
-	if (_source[i] == '{')
-	{
+	if (_isRangeQuantifier(i))
+		return (true);
+	return (false);
+}
+
+bool Regex::_isRangeQuantifier(size_t i) const throw(std::invalid_argument) {
+	if (_isEscaped(i))
+		return (false);
+	if (_source[i] == '{') {
 		std::istringstream ss(_source.substr(i + 1));
 		ssize_t min = -1, max = -1; char c = 0;
 		ss >> std::noskipws >> min >> c;
 		if (!ss.good() || min < 0)
 			return (false);
-		if (c == '}')
-		{
+		if (c == '}') {
 			if (min > USHRT_MAX)
 				throw std::invalid_argument("Regex quantifier range is too large");
 			return (true);
 		}
-		if (c == ',')
-		{
-			if (ss.peek() == '}')
-			{
+		if (c == ',') {
+			if (ss.peek() == '}') {
 				if (min > USHRT_MAX)
 					throw std::invalid_argument("Regex quantifier range is too large");
 				return (true);
 			}
 			ss >> std::noskipws >> max;
-			if (ss.good() && ss.peek() == '}')
-			{
+			if (ss.good() && ss.peek() == '}') {
 				if (min > USHRT_MAX || max > USHRT_MAX)
 					throw std::invalid_argument("Regex quantifier range is too large");
 				if (max < 0)
@@ -376,6 +383,19 @@ bool Regex::_isQuantifier(size_t i) const { // + ? * {2} {2,} {0,3}
 		}
 	}
 	return (false);
+}
+
+void Regex::_setRangeQuantifier(size_t & i, struct pattern & p) const {
+	std::istringstream ss(_source.substr(i + 1));
+	char c = 0;
+	ss >> std::noskipws >> p.min >> c;
+	if (c == '}')
+		p.max = p.min;
+	else if (ss.peek() == '}')
+		p.max = UNLIMITED;
+	else
+		ss >> std::noskipws >> p.max;
+	i = _source.find('}', i + 1) + 1;
 }
 
 bool Regex::_isDigit(size_t i) const {

@@ -2,10 +2,9 @@
 
 int main(void)
 {
-    //handleParenthesis appelle handleSequence qui a la fin appelle handleCharacter sur le ')'
-    Regex r("{5,2a"); 
-    //string str("acd");
-    //std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
+    Regex r("a(b(c|o)d?)|(efg)"); 
+    string str("There efgabore two needles in this needle haystack");
+    std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
     return (0);
 }
 
