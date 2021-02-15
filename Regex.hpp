@@ -5,6 +5,8 @@
 # include <iostream>
 # include <stdexcept>
 # include <vector>
+# include <sstream>
+# include <climits>
 # define UNLIMITED -1
 
 using std::string;
