@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    Regex r("\\^bc\\[$"); 
+    Regex r("\\^bc\\[$."); 
     string str("^bc[");
     std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
     return (0);

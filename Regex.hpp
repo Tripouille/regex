@@ -60,10 +60,12 @@ class Regex {
 
         void _checkPipeValidity() const throw (std::invalid_argument);
         void _checkParenthesisValidity() const throw (std::invalid_argument);
+        void _checkDelimiterValidity() const throw (std::invalid_argument);
 
         bool _matchSequence(string const & str, size_t & strPos, vector<struct pattern> const & sequence, size_t sequencePos) const;
         bool _matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const;
         bool _matchCharacter(string const & str, size_t & strPos, struct pattern const & pattern) const;
+        bool _matchBracket(string const & str, size_t & strPos, struct pattern const & pattern) const;
 
         bool _isEscaped(ssize_t i) const;
         bool _isRealOpeningParenthesis(size_t i) const;

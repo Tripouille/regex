@@ -7,6 +7,7 @@ Regex::Regex(string const & regex) throw (std::invalid_argument) : _source(regex
 		throw std::invalid_argument("Regex Pattern may not end with a trailing backslash");
 	_checkPipeValidity();
 	_checkParenthesisValidity();
+	_checkDelimiterValidity();
 	size_t i = 0;
 	while (_source[i])
 		_createSequence(i, _root);
@@ -93,7 +94,7 @@ bool Regex::_matchPattern(string const & str, size_t & strPos, struct pattern co
 		return (!strPos);
 	else if (pattern.value == ENDOFLINE)
 		return (!str[strPos]);
-	else if (pattern.value == "[")
+	else if (pattern.value[0] == '[')
 		return (true);
 	else
 		return (_matchCharacter(str, strPos, pattern));
@@ -105,6 +106,11 @@ bool Regex::_matchCharacter(string const & str, size_t & strPos, struct pattern 
 		return (true);
 	}
 	return (false);
+}
+
+bool Regex::_matchBracket(string const & str, size_t & strPos, struct pattern const & pattern) const {
+	for (size_t i = 0; pattern.value[i]; ++i);
+	return (str[strPos]);
 }
 
 /* Parsing */
@@ -311,6 +317,14 @@ void Regex::_checkPipeValidity() const throw (std::invalid_argument) {
 	for (size_t i = 1; i < size; ++i)
 		if (_isRealPipe(i) && _isRealPipe(i - 1))
 			throw std::invalid_argument("Regex pipe error");
+}
+
+void Regex::_checkDelimiterValidity() const throw (std::invalid_argument) {
+	for (size_t i = 0; _source[i]; ++i)
+		if (!_isEscaped(i) && i && _source[i] == '^')
+			throw std::invalid_argument("Regex invalid ^ position");
+		else if (!_isEscaped(i) && _source[i + 1] && _source[i] == '$')
+			throw std::invalid_argument("Regex invalid $ position");
 }
 
 void Regex::_checkParenthesisValidity() const throw (std::invalid_argument) {
