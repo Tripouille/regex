@@ -149,14 +149,14 @@ void Regex::_handleBracket(size_t & i, struct pattern & sequence) throw (std::in
 	struct pattern bracket;
 
 	//std::cerr << "Debut de _handleBracket" << std::endl;
-	size_t closingBracketPos = _source.find(']', i + 1);
-	if (closingBracketPos == string::npos)
+	size_t bracketEnd = _getBracketEnd(i);
+	if (bracketEnd == string::npos)
 		throw std::invalid_argument("Regex missing ]");
-	else if (closingBracketPos == i + 1)
+	else if (bracketEnd == i + 1)
 		throw std::invalid_argument("Regex bracket can't be empty");
 
-	bracket.value = string(_source, i, closingBracketPos - i + 1);
-	i = closingBracketPos + 1;
+	bracket.value = string(_source, i, bracketEnd - i + 1);
+	i = bracketEnd + 1;
 	_setPatternMinMax(i, bracket);
 	sequence.sequence.push_back(bracket);
 }
@@ -213,6 +213,12 @@ size_t Regex::_getParenthesisEnd(size_t i) {
 		++end;
 	}
 	return (end);
+}
+
+size_t Regex::_getBracketEnd(size_t i) {
+	while(_source[i] && !_isRealClosingBracket(i))
+		++i;
+	return (_source[i] ? i : string::npos);
 }
 
 size_t Regex::_getPipeEnd(size_t i) {

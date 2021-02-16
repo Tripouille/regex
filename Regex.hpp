@@ -51,6 +51,7 @@ class Regex {
         void _insertSequence(struct pattern & sequence, struct pattern & parent);
 
         size_t _getParenthesisEnd(size_t i);
+        size_t _getBracketEnd(size_t i);
         size_t _getPipeEnd(size_t i);
         size_t _getCharacterEnd(size_t i);
         size_t _getSequenceEnd(size_t i);
