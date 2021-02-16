@@ -296,7 +296,7 @@ void Regex::_checkPipeValidity() const throw (std::invalid_argument) {
 		throw std::invalid_argument("Regex pipe error");
 	size_t size = _source.size();
 	for (size_t i = 1; i < size; ++i)
-		if (!_isRealPipe(i) && !_isRealPipe(i - 1))
+		if (_isRealPipe(i) && _isRealPipe(i - 1))
 			throw std::invalid_argument("Regex pipe error");
 }
 
