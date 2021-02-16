@@ -84,17 +84,25 @@ bool Regex::_matchSequence(string const & str, size_t & strPos, vector<struct pa
 }
 
 bool Regex::_matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const {
-	//std::cerr << pattern.value << " in matchPattern / sequence size = " << pattern.sequence.size() << std::endl;
 	if (pattern.sequence.size() != 0)
 		return (_matchSequence(str, strPos, pattern.sequence, 0));
-	if (pattern.isEscaped || string("(|[").find(pattern.value[0]) == string::npos)
-	{
-		if (pattern.value[0] == str[strPos])
-		{
-			++strPos;
-			return (true);
-		}
-		return (false);
+
+	if (pattern.isEscaped)
+		return (_matchCharacter(str, strPos, pattern));
+	else if (pattern.value == STARTOFLINE)
+		return (!strPos);
+	else if (pattern.value == ENDOFLINE)
+		return (!str[strPos]);
+	else if (pattern.value == "[")
+		return (true);
+	else
+		return (_matchCharacter(str, strPos, pattern));
+}
+
+bool Regex::_matchCharacter(string const & str, size_t & strPos, struct pattern const & pattern) const {
+	if (str[strPos] == pattern.value[0]) {
+		++strPos;
+		return (true);
 	}
 	return (false);
 }
@@ -222,7 +230,6 @@ size_t Regex::_getBracketEnd(size_t i) {
 }
 
 size_t Regex::_getPipeEnd(size_t i) {
-
 	while(_source[i])
 	{
 		if (_isRealPipe(i) || _isRealClosingParenthesis(i))
