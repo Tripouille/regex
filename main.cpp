@@ -2,8 +2,8 @@
 
 int main(void)
 {
-    Regex r(".*\\.php$"); 
-    string str("lol.phpi");
+    Regex r(".+\\.php$"); 
+    string str("lol.php");
     std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
     return (0);
 }

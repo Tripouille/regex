@@ -64,6 +64,7 @@ class Regex {
 
         bool _matchSequence(string const & str, size_t & strPos, vector<struct pattern> const & sequence, size_t sequencePos) const;
         bool _matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const;
+        bool _matchDot(string const & str, size_t & strPos) const ;
         bool _matchCharacter(string const & str, size_t & strPos, struct pattern const & pattern) const;
         bool _matchBracket(string const & str, size_t & strPos, struct pattern const & pattern) const;
         bool _matchInBracket(string const & str, size_t & strPos, string const & bracket) const;

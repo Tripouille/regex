@@ -90,26 +90,28 @@ bool Regex::_matchPattern(string const & str, size_t & strPos, struct pattern co
 
 	if (pattern.isEscaped)
 		return (_matchCharacter(str, strPos, pattern));
-	else if (pattern.value == ".")
-	{
-		if (str[strPos] && str[strPos] != '\n')
-		{
-			++strPos;
-			return (true);
-		}
-		return (false);
-	}
-	else if (pattern.value == STARTOFLINE)
-		return (!strPos);
 	else if (pattern.value == ENDOFLINE)
 		return (!str[strPos]);
+	else if (!str[strPos])
+		return(false);
+	else if (pattern.value == ".")
+		return (_matchDot(str, strPos));
+	else if (pattern.value == STARTOFLINE)
+		return (!strPos);
 	else if (pattern.value[0] == '[')
 		return (_matchBracket(str, strPos, pattern));
 	else
 		return (_matchCharacter(str, strPos, pattern));
 }
 
-
+bool Regex::_matchDot(string const & str, size_t & strPos) const {
+		if (str[strPos] != '\n')
+		{
+			++strPos;
+			return (true);
+		}
+		return (false);
+}
 
 bool Regex::_matchCharacter(string const & str, size_t & strPos, struct pattern const & pattern) const {
 	if (str[strPos] == pattern.value[0]) {
@@ -120,9 +122,7 @@ bool Regex::_matchCharacter(string const & str, size_t & strPos, struct pattern 
 }
 
 bool Regex::_matchBracket(string const & str, size_t & strPos, struct pattern const & pattern) const {
-	if (!str[strPos])
-		return (false);
-	else if (pattern.value[1] == '^')
+	if (pattern.value[1] == '^')
 		return(_matchOutBracket(str, strPos, pattern.value.substr(2, pattern.value.size() - 3)));
 	else
 		return(_matchInBracket(str, strPos, pattern.value.substr(1, pattern.value.size() - 2)));
