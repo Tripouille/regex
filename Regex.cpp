@@ -28,7 +28,7 @@ bool Regex::match(string const & str) const {
 	size_t testedStrPos = 0;
 	size_t limit = str.size();
 	
-	for (; strPos < limit; ++strPos) {
+	for (; strPos <= limit; ++strPos) {
 		testedStrPos = strPos;
 		std::cerr << std::endl << ">>>>>>>>>> TestedPos = " << strPos << " <<<<<<<<<<<<<<" << std::endl;
 		if (_matchSequence(str, testedStrPos, _root.sequence, 0))
@@ -90,15 +90,26 @@ bool Regex::_matchPattern(string const & str, size_t & strPos, struct pattern co
 
 	if (pattern.isEscaped)
 		return (_matchCharacter(str, strPos, pattern));
+	else if (pattern.value == ".")
+	{
+		if (str[strPos] && str[strPos] != '\n')
+		{
+			++strPos;
+			return (true);
+		}
+		return (false);
+	}
 	else if (pattern.value == STARTOFLINE)
 		return (!strPos);
 	else if (pattern.value == ENDOFLINE)
 		return (!str[strPos]);
 	else if (pattern.value[0] == '[')
-		return (true);
+		return (_matchBracket(str, strPos, pattern));
 	else
 		return (_matchCharacter(str, strPos, pattern));
 }
+
+
 
 bool Regex::_matchCharacter(string const & str, size_t & strPos, struct pattern const & pattern) const {
 	if (str[strPos] == pattern.value[0]) {
@@ -109,8 +120,40 @@ bool Regex::_matchCharacter(string const & str, size_t & strPos, struct pattern 
 }
 
 bool Regex::_matchBracket(string const & str, size_t & strPos, struct pattern const & pattern) const {
-	for (size_t i = 0; pattern.value[i]; ++i);
-	return (str[strPos]);
+	if (!str[strPos])
+		return (false);
+	else if (pattern.value[1] == '^')
+		return(_matchOutBracket(str, strPos, pattern.value.substr(2, pattern.value.size() - 3)));
+	else
+		return(_matchInBracket(str, strPos, pattern.value.substr(1, pattern.value.size() - 2)));
+}
+
+bool Regex::_matchInBracket(string const & str, size_t & strPos, string const & bracket) const {
+	ssize_t size = bracket.size();
+
+	for (ssize_t i = 0; bracket[i]; ++i)
+		if ((_isInRange(i, 1, size - 2) && bracket[i] == '-' && !_isEscaped(i, bracket) && _isInRange(str[strPos], bracket[i - 1], bracket[i + 1]))
+		|| (bracket[i] == str[strPos]))
+		{
+			++strPos;
+			return (true);
+		}
+	return (false);
+}
+
+bool Regex::_matchOutBracket(string const & str, size_t & strPos, string const & bracket) const {
+	ssize_t size = bracket.size();
+
+	for (ssize_t i = 0; bracket[i]; ++i)
+		if ((_isInRange(i, 1, size - 2) && bracket[i] == '-' && !_isEscaped(i, bracket) && _isInRange(str[strPos], bracket[i - 1], bracket[i + 1]))
+		|| (bracket[i] == str[strPos]))
+			return (false);
+	++strPos;
+	return (true);
+}
+
+bool Regex::_isInRange(ssize_t value, ssize_t min, ssize_t max) const {
+	return (value >= min && value <= max);
 }
 
 /* Parsing */
@@ -289,6 +332,13 @@ bool Regex::_isEscaped(ssize_t i) const {
 	return (count % 2);
 }
 
+bool Regex::_isEscaped(ssize_t i, string const & str) const {
+	size_t count = 0;
+	while (--i >= 0 && str[i] == '\\')
+		++count;
+	return (count % 2);
+}
+
 void Regex::showPattern(vector<struct pattern> & p, int x, bool isAlternative) {
 	for (size_t i = 0; i < p.size(); ++i)
 	{
@@ -321,7 +371,7 @@ void Regex::_checkPipeValidity() const throw (std::invalid_argument) {
 
 void Regex::_checkDelimiterValidity() const throw (std::invalid_argument) {
 	for (size_t i = 0; _source[i]; ++i)
-		if (!_isEscaped(i) && i && _source[i] == '^')
+		if (!_isEscaped(i) && i && _source[i] == '^' && !_isInBracket(i))
 			throw std::invalid_argument("Regex invalid ^ position");
 		else if (!_isEscaped(i) && _source[i + 1] && _source[i] == '$')
 			throw std::invalid_argument("Regex invalid $ position");
@@ -425,4 +475,11 @@ void Regex::_setRangeQuantifier(size_t & i, struct pattern & p) const {
 
 bool Regex::_isDigit(size_t i) const {
 	return (_source[i] >= '0' && _source[i] <= '9');
+}
+
+bool Regex::_isInBracket(size_t i) const {
+	int l, r;
+	for (l = i - 1; l >= 0 && !_isRealOpeningBracket(l); --l);
+	for (r = i + 1; _source[r] && !_isRealClosingBracket(r); ++r);
+	return (l >= 0 && _source[r]);
 }

@@ -66,8 +66,12 @@ class Regex {
         bool _matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const;
         bool _matchCharacter(string const & str, size_t & strPos, struct pattern const & pattern) const;
         bool _matchBracket(string const & str, size_t & strPos, struct pattern const & pattern) const;
+        bool _matchInBracket(string const & str, size_t & strPos, string const & bracket) const;
+        bool _matchOutBracket(string const & str, size_t & strPos, string const & bracket) const;
+        bool _isInRange(ssize_t value, ssize_t min, ssize_t max) const;
 
         bool _isEscaped(ssize_t i) const;
+        bool _isEscaped(ssize_t i, string const & str) const;
         bool _isRealOpeningParenthesis(size_t i) const;
         bool _isRealClosingParenthesis(size_t i) const;
         bool _isRealOpeningBracket(size_t i) const;
@@ -78,6 +82,7 @@ class Regex {
         bool _isRangeQuantifier(size_t i) const throw(std::invalid_argument);
         void _setRangeQuantifier(size_t & i, struct pattern & p) const;
         bool _isDigit(size_t i) const;
+        bool _isInBracket(size_t i) const;
         //debug
         void showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);
 
