@@ -41,13 +41,13 @@ class Regex {
 
         void _createSequence(size_t & i, struct pattern & parent) throw (std::invalid_argument);
         void _handleSequence(size_t & i, struct pattern & sequence, struct pattern & parent) throw (std::invalid_argument);
-        void _handleParenthesis(size_t & i, struct pattern & sequence);
-        void _handleBracket(size_t & i, struct pattern & sequence);
-        void _handlePipe(size_t & i, struct pattern & sequence, struct pattern & parent);
+        void _handleParenthesis(size_t & i, struct pattern & sequence) throw (std::invalid_argument);
+        void _handleBracket(size_t & i, struct pattern & sequence) throw (std::invalid_argument);
+        void _handlePipe(size_t & i, struct pattern & sequence, struct pattern & parent) throw (std::invalid_argument);
         void _handleCharacter(size_t & i, struct pattern & sequence);
         void _handleEscapeCharacter(size_t & i) const;
 
-        void _setPatternMinMax(size_t & i, struct pattern & p);
+        void _setPatternMinMax(size_t & i, struct pattern & p) throw (std::invalid_argument);
         void _insertSequence(struct pattern & sequence, struct pattern & parent);
 
         size_t _getParenthesisEnd(size_t i);
