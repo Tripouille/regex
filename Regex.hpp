@@ -34,7 +34,9 @@ class Regex {
         Regex(string const & regex) throw (std::invalid_argument);
         ~Regex();
         string getSource() const;
-        bool match(string const & str) const;
+        bool match(string const & str);
+        string getLastMatch() const;
+
 
     private:
         Regex();
@@ -45,6 +47,7 @@ class Regex {
         void _checkPipeValidity() const throw (std::invalid_argument);
         void _checkParenthesisValidity() const throw (std::invalid_argument);
         void _checkDelimiterValidity() const throw (std::invalid_argument);
+        void _checkBracketValidity() const throw (std::invalid_argument);
 
         /* Parsing */
         void _createSequence(size_t & i, struct pattern & parent) throw (std::invalid_argument);
@@ -56,11 +59,11 @@ class Regex {
         void _handleEscapeCharacter(size_t & i) const;
         void _setPatternMinMax(size_t & i, struct pattern & p) throw (std::invalid_argument);
         void _insertSequence(struct pattern & sequence, struct pattern & parent);
-        size_t _getParenthesisEnd(size_t i);
-        size_t _getBracketEnd(size_t i);
-        size_t _getPipeEnd(size_t i);
-        size_t _getCharacterEnd(size_t i);
-        size_t _getSequenceEnd(size_t i);
+        size_t _getParenthesisEnd(size_t i) const;
+        size_t _getBracketEnd(size_t i) const;
+        size_t _getPipeEnd(size_t i) const;
+        size_t _getCharacterEnd(size_t i) const;
+        size_t _getSequenceEnd(size_t i) const;
 
         /* Matchs */
         bool _matchSequence(string const & str, size_t & strPos, vector<struct pattern> const & sequence, size_t sequencePos) const;
@@ -88,11 +91,12 @@ class Regex {
         bool _isInBracket(size_t i) const;
 
         //debug
-        void showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);
+        void _showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);
 
         /* Variables */
         struct pattern _root;
         string const _source;
+        string _lastMatch;
 };
 
 #endif

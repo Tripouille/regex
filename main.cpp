@@ -2,9 +2,9 @@
 
 int main(void)
 {
-    Regex r("[a-z-]$"); 
-    string str("A");
-    std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
+    Regex r("a.+\\.php"); 
+    string str("fsfsafas.php");
+    std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << " last match = " << r.getLastMatch() << std::endl;
     return (0);
 }
 
