@@ -41,6 +41,12 @@ class Regex {
         Regex(Regex const & o);
         Regex & operator=(Regex const & o);
 
+        /* Checks */
+        void _checkPipeValidity() const throw (std::invalid_argument);
+        void _checkParenthesisValidity() const throw (std::invalid_argument);
+        void _checkDelimiterValidity() const throw (std::invalid_argument);
+
+        /* Parsing */
         void _createSequence(size_t & i, struct pattern & parent) throw (std::invalid_argument);
         void _handleSequence(size_t & i, struct pattern & sequence, struct pattern & parent) throw (std::invalid_argument);
         void _handleParenthesis(size_t & i, struct pattern & sequence) throw (std::invalid_argument);
@@ -48,20 +54,15 @@ class Regex {
         void _handlePipe(size_t & i, struct pattern & sequence, struct pattern & parent) throw (std::invalid_argument);
         void _handleCharacter(size_t & i, struct pattern & sequence);
         void _handleEscapeCharacter(size_t & i) const;
-
         void _setPatternMinMax(size_t & i, struct pattern & p) throw (std::invalid_argument);
         void _insertSequence(struct pattern & sequence, struct pattern & parent);
-
         size_t _getParenthesisEnd(size_t i);
         size_t _getBracketEnd(size_t i);
         size_t _getPipeEnd(size_t i);
         size_t _getCharacterEnd(size_t i);
         size_t _getSequenceEnd(size_t i);
 
-        void _checkPipeValidity() const throw (std::invalid_argument);
-        void _checkParenthesisValidity() const throw (std::invalid_argument);
-        void _checkDelimiterValidity() const throw (std::invalid_argument);
-
+        /* Matchs */
         bool _matchSequence(string const & str, size_t & strPos, vector<struct pattern> const & sequence, size_t sequencePos) const;
         bool _matchPattern(string const & str, size_t & strPos, struct pattern const & pattern) const;
         bool _matchDot(string const & str, size_t & strPos) const ;
@@ -69,8 +70,9 @@ class Regex {
         bool _matchBracket(string const & str, size_t & strPos, struct pattern const & pattern) const;
         bool _matchInBracket(string const & str, size_t & strPos, string const & bracket) const;
         bool _matchOutBracket(string const & str, size_t & strPos, string const & bracket) const;
-        bool _isInRange(ssize_t value, ssize_t min, ssize_t max) const;
 
+        /* Utils */
+        bool _isInRange(ssize_t value, ssize_t min, ssize_t max) const;
         bool _isEscaped(ssize_t i) const;
         bool _isEscaped(ssize_t i, string const & str) const;
         bool _isRealOpeningParenthesis(size_t i) const;
@@ -84,6 +86,7 @@ class Regex {
         void _setRangeQuantifier(size_t & i, struct pattern & p) const;
         bool _isDigit(size_t i) const;
         bool _isInBracket(size_t i) const;
+
         //debug
         void showPattern(vector<struct pattern> & p, int x, bool isAlternative = false);
 

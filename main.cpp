@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    Regex r("[--z]$"); 
+    Regex r("[a-z-]$"); 
     string str("A");
     std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
     return (0);
