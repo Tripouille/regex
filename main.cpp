@@ -2,8 +2,8 @@
 
 int main(void)
 {
-    Regex r(".+\\.php$"); 
-    string str("lol.php");
+    Regex r("[--z]$"); 
+    string str("A");
     std::cout << r.getSource() << " match " << str << " ? " << std::boolalpha << r.match(str) << std::endl;
     return (0);
 }
@@ -11,7 +11,8 @@ int main(void)
 /*
 
 
-a faire in is parenthesis pour la fin de la sequence
+handle les bracket caca avec des erreurs
+
 
 
 */

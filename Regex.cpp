@@ -130,24 +130,40 @@ bool Regex::_matchBracket(string const & str, size_t & strPos, struct pattern co
 
 bool Regex::_matchInBracket(string const & str, size_t & strPos, string const & bracket) const {
 	ssize_t size = bracket.size();
+	ssize_t minRangePos = 0;
 
 	for (ssize_t i = 0; bracket[i]; ++i)
-		if ((_isInRange(i, 1, size - 2) && bracket[i] == '-' && !_isEscaped(i, bracket) && _isInRange(str[strPos], bracket[i - 1], bracket[i + 1]))
-		|| (bracket[i] == str[strPos]))
+		if (i - 1 >= minRangePos && _isInRange(i, 1, size - 2) && bracket[i] == '-' && !_isEscaped(i, bracket))
+		{
+			std::cout << "real - found i = " << i << std::endl;
+			if (_isInRange(str[strPos], bracket[i - 1], bracket[i + 1]))
+			{
+				++strPos;
+				return (true);
+			}
+			++i; minRangePos = i + 1;
+		}
+		else if (bracket[i] == str[strPos])
 		{
 			++strPos;
-			return (true);
+			return (true);	
 		}
 	return (false);
 }
 
 bool Regex::_matchOutBracket(string const & str, size_t & strPos, string const & bracket) const {
 	ssize_t size = bracket.size();
+	ssize_t minRangePos = 0;
 
 	for (ssize_t i = 0; bracket[i]; ++i)
-		if ((_isInRange(i, 1, size - 2) && bracket[i] == '-' && !_isEscaped(i, bracket) && _isInRange(str[strPos], bracket[i - 1], bracket[i + 1]))
-		|| (bracket[i] == str[strPos]))
-			return (false);
+		if (i - 1 >= minRangePos && _isInRange(i, 1, size - 2) && bracket[i] == '-' && !_isEscaped(i, bracket))
+		{
+			if (_isInRange(str[strPos], bracket[i - 1], bracket[i + 1]))
+				return (false);
+			++i; minRangePos = i + 1;
+		}
+		else if (bracket[i] == str[strPos])
+			return (false);	
 	++strPos;
 	return (true);
 }
