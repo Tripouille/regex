@@ -5,6 +5,8 @@ Regex::Regex(string const & regex) throw (std::invalid_argument) : _source(regex
 		throw std::invalid_argument("Regex can't be empty");
 	else if (_isRealEscape(_source.size() - 1))
 		throw std::invalid_argument("Regex Pattern may not end with a trailing backslash");
+	else if (_source.size() > SOURCE_MAX_SIZE)
+		throw std::invalid_argument("Regex Pattern is too long");
 	_checkPipeValidity();
 	_checkParenthesisValidity();
 	_checkDelimiterValidity();

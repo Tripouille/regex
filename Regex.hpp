@@ -15,9 +15,7 @@ using std::string;
 using std::vector;
 
 class Regex {
-
-
-
+    enum {SOURCE_MAX_SIZE = 100};
     struct pattern {
         pattern(string const & v = "default", size_t mi = 1, size_t ma = 1) : value(v), min(mi), max(ma), isAlternative(false), isEscaped(false) {}
 
