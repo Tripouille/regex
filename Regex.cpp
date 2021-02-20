@@ -265,7 +265,7 @@ bool Regex::_matchSequence(string const & str, size_t & strPos, vector<struct pa
 	&& _matchSequence(str, strPos, sequence, sequencePos + 1) == true)
 		return (true);
 
-	for (size_t repeat = 1; repeat <= sequence[sequencePos].max; ++repeat) {
+	for (size_t repeat = 1; repeat <= sequence[sequencePos].max && repeat <= str.size(); ++repeat) {
 		strPos = strPosSave;
 		if (_matchPattern(str, strPos, sequence[sequencePos])) {
 			strPosSave = strPos;
